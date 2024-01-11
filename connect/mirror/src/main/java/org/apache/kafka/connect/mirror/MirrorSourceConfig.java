@@ -34,6 +34,10 @@ public class MirrorSourceConfig extends MirrorConnectorConfig {
     protected static final String SYNC_TOPIC_CONFIGS = "sync.topic.configs";
     protected static final String SYNC_TOPIC_ACLS = "sync.topic.acls";
 
+    protected static final String SYNC_CONSUMER_OFFSETS_UPSTREAM = "sync.consumer.offsets.upstream";
+    protected static final String SYNC_CONSUMER_OFFSETS_UPSTREAM_DOC = "Whether to replicate consumer offsets from downstream back upstream";
+    protected static final boolean SYNC_CONSUMER_OFFSETS_UPSTREAM_DEFAULT = false;
+
     public static final String REPLICATION_FACTOR = "replication.factor";
     private static final String REPLICATION_FACTOR_DOC = "Replication factor for newly created remote topics.";
     public static final int REPLICATION_FACTOR_DEFAULT = 2;
@@ -186,6 +190,10 @@ public class MirrorSourceConfig extends MirrorConnectorConfig {
             // negative interval to disable
             return Duration.ofMillis(-1);
         }
+    }
+
+    boolean syncConsumerOffsetsUpstream() {
+        return getBoolean(SYNC_CONSUMER_OFFSETS_UPSTREAM);
     }
 
     String useIncrementalAlterConfigs() {
@@ -347,7 +355,13 @@ public class MirrorSourceConfig extends MirrorConnectorConfig {
                     ConfigDef.Type.BOOLEAN,
                     ADD_SOURCE_ALIAS_TO_METRICS_DEFAULT,
                     ConfigDef.Importance.LOW,
-                    ADD_SOURCE_ALIAS_TO_METRICS_DOC);
+                    ADD_SOURCE_ALIAS_TO_METRICS_DOC)
+            .define(
+                    SYNC_CONSUMER_OFFSETS_UPSTREAM,
+                    ConfigDef.Type.BOOLEAN,
+                    SYNC_CONSUMER_OFFSETS_UPSTREAM_DEFAULT,
+                    ConfigDef.Importance.LOW,
+                    SYNC_CONSUMER_OFFSETS_UPSTREAM_DOC);
 
     public static void main(String[] args) {
         System.out.println(CONNECTOR_CONFIG_DEF.toHtml(4, config -> "mirror_source_" + config));

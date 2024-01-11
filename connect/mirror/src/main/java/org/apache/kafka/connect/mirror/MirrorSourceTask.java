@@ -58,6 +58,7 @@ public class MirrorSourceTask extends SourceTask {
     private KafkaProducer<byte[], byte[]> offsetProducer;
     private String sourceClusterAlias;
     private String offsetSyncsTopic;
+    private boolean syncConsumerOffsetsUpstream;
     private Duration pollTimeout;
     private long maxOffsetLag;
     private Map<TopicPartition, PartitionState> partitionStates;
@@ -100,6 +101,7 @@ public class MirrorSourceTask extends SourceTask {
         replicationPolicy = config.replicationPolicy();
         partitionStates = new HashMap<>();
         offsetSyncsTopic = config.offsetSyncsTopic();
+        syncConsumerOffsetsUpstream = config.syncConsumerOffsetsUpstream();
         consumer = MirrorUtils.newConsumer(config.sourceConsumerConfig("replication-consumer"));
         offsetProducer = MirrorUtils.newProducer(config.offsetSyncsTopicProducerConfig());
         Set<TopicPartition> taskTopicPartitions = config.taskTopicPartitions();
@@ -201,6 +203,9 @@ public class MirrorSourceTask extends SourceTask {
         long upstreamOffset = MirrorUtils.unwrapOffset(record.sourceOffset());
         long downstreamOffset = metadata.offset();
         maybeQueueOffsetSyncs(sourceTopicPartition, upstreamOffset, downstreamOffset);
+        if (syncConsumerOffsetsUpstream) {
+            maybeQueueOffsetSyncs(topicPartition, downstreamOffset, upstreamOffset);
+        }
         // We may be able to immediately publish an offset sync that we've queued up here
         firePendingOffsetSyncs();
     }
